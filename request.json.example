@@ -1,6 +1,6 @@
 {
     "Example Report Name": {
-        "request_url": "https://example.com/api/report",
+        "request_url": "/api/report",
         "payload": {
             "datasource": {
                 "id": 123,
