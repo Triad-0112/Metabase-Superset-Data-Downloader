@@ -1,0 +1,13 @@
+[SETTINGS]
+output_dir = D:/Output/Folder
+max_workers = 10
+base_url = https://dashboard.example.com
+
+[LOGIN]
+username = your_username
+password = your_password
+
+[INTERVAL]
+enabled = True
+interval_minutes = 120
+minimize_to_tray = True
