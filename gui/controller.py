@@ -1,4 +1,3 @@
-# gui/controller.py
 from PyQt6.QtWidgets import (
     QMessageBox, QFileDialog, QSystemTrayIcon, QMenu
 )
@@ -7,6 +6,7 @@ from PyQt6.QtGui import QIcon, QAction
 import json
 import configparser
 import os
+import random
 from gui.model import ReportModel, CONFIG_FILE
 from gui.dialogs import AddEditReportDialog, EditConfigDialog, IntervalSettingsDialog
 from gui.extractor import ExtractorWorker
@@ -159,29 +159,36 @@ class Controller:
             self.load_interval_settings()  # Reload settings
 
     def start_auto_interval(self, interval_minutes, minimize_to_tray=False):
-        """Start auto interval extraction"""
+        """Start auto interval extraction with an initial jitter."""
         if self.is_auto_mode:
             self.view.log_box.append("⚠️ Auto interval sudah aktif.")
             return
             
         self.is_auto_mode = True
-        self.interval_timer.start(interval_minutes * 60 * 1000)  # Convert to milliseconds
         
+        # ==================== HIGHLIGHT START ====================
+        # This block adds a random delay of 1-5 minutes before the *first* extraction runs.
+        initial_jitter_minutes = random.randint(1, 5)
+        self.view.log_box.append(f" Jitter awal ditambahkan: {initial_jitter_minutes} menit.")
+        
+        # The timer is set to trigger the first auto_extract() after this initial delay.
+        self.interval_timer.start(initial_jitter_minutes * 60 * 1000)
+        # ===================== HIGHLIGHT END =====================
+
         # Update UI
         self.view.set_auto_mode(True)
-        self.view.update_status("Auto Interval Aktif", f"Interval: {interval_minutes} menit")
+        self.view.update_status("Auto Interval Aktif", f"Interval dasar: {interval_minutes} menit")
         
-        # Calculate next run time
-        self.calculate_next_run(interval_minutes)
+        # Calculate the run time for the FIRST extraction
+        self.calculate_next_run(initial_jitter_minutes)
         
-        self.view.log_box.append(f"🔄 Auto interval aktif! Ekstraksi akan dijalankan setiap {interval_minutes} menit.")
+        self.view.log_box.append(f"🔄 Auto interval aktif! Ekstraksi pertama akan dijalankan dalam ~{initial_jitter_minutes} menit.")
         
         # Minimize to tray if requested
         if minimize_to_tray and hasattr(self, 'tray_icon'):
             self.hide_window()
             
-        # Start first extraction immediately
-        self.start_extraction()
+        # The first extraction is no longer started immediately. It will start after the initial jitter.
 
     def stop_auto_interval(self):
         """Stop auto interval extraction"""
@@ -232,16 +239,30 @@ class Controller:
         self.view.update_status("Auto Interval Aktif", countdown_text)
 
     def auto_extract(self):
-        """Perform automatic extraction"""
+        """Perform automatic extraction and schedule the next one."""
         self.view.log_box.append(f"🤖 [AUTO] Memulai ekstraksi otomatis - {QDateTime.currentDateTime().toString('dd/MM/yyyy hh:mm:ss')}")
         
-        # Calculate next run time
+        # ==================== HIGHLIGHT START ====================
+        # This block calculates the interval for the *next* extraction,
+        # adding a new random jitter each time.
         config = configparser.ConfigParser(interpolation=None)
         config.read(CONFIG_FILE)
-        interval_minutes = config["INTERVAL"].getint("interval_minutes", 120)
-        self.calculate_next_run(interval_minutes)
+        base_interval_minutes = config["INTERVAL"].getint("interval_minutes", 120)
         
-        # Start extraction
+        random_delay_minutes = random.randint(1, 20)
+        next_interval_minutes = base_interval_minutes + random_delay_minutes
+        
+        self.view.log_box.append(f" Jitter berikutnya: {random_delay_minutes} menit. Interval selanjutnya diatur ke ~{next_interval_minutes} menit.")
+
+        # Stop the old timer and start a new one with the new randomized interval.
+        self.interval_timer.stop()
+        self.interval_timer.start(next_interval_minutes * 60 * 1000)
+        
+        # Calculate and display the next run time in the UI.
+        self.calculate_next_run(next_interval_minutes)
+        # ===================== HIGHLIGHT END =====================
+        
+        # Start the actual extraction process
         self.start_extraction()
 
     def handle_extract_button(self):
@@ -475,3 +496,5 @@ class Controller:
         except Exception as e:
             self.view.log_box.append(f"[ERROR] Gagal membaca config.ini: {str(e)}")
             return "", ""
+
+

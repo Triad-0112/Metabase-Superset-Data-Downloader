@@ -1,4 +1,3 @@
-# gui/extractor.py
 import configparser
 from PyQt6.QtCore import QObject, pyqtSignal, QRunnable
 from core.commands import (
@@ -33,10 +32,6 @@ class ReportWorker:
         try:
             # Tidak perlu update config.ini di sini, cukup gunakan output_dir yang sudah diset
             # Proses fetch dan save report
-            report_data = self.executor.execute_command(
-                FetchReportCommand(), self.name, self.info["request_url"], self.info["payload"]
-            )
-            
             self.signals.message.emit(f"⏳ Mengambil data untuk report: '{self.name}'...")
             report_data = self.executor.execute_command(
                 FetchReportCommand(), self.name, self.info["request_url"], self.info["payload"]

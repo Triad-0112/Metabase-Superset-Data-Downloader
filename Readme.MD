@@ -6,6 +6,7 @@ A Python desktop application for automated downloading of reports from Metabase/
 
 - **Automated Downloads**: Schedule automatic report downloads at configurable intervals
 - **Concurrent Processing**: Download multiple reports simultaneously 
+- **Randomized Interval Jitter**: Adds a random delay to scheduled downloads to avoid overloading the server.
 - **System Tray Integration**: Run minimized while maintaining functionality
 - **Multiple Source Support**: 
   - Metabase CSV endpoints
@@ -13,6 +14,7 @@ A Python desktop application for automated downloading of reports from Metabase/
   - Direct CSV URL downloads
 - **Progress Tracking**: Visual feedback for download progress
 - **Detailed Logging**: Comprehensive activity logging
+- **Locking into one Instance**: Make sure that was only one instance that is allowed to run
 
 ## 🔧 Requirements
 
@@ -59,6 +61,7 @@ enabled = True
 interval_minutes = 120
 minimize_to_tray = True
 ```
+**Note on Jitter**: To distribute server load, the application adds a random "jitter" to the `interval_minutes`. When auto-mode is first started, a short jitter of **1-5 minutes** is added before the first extraction. All subsequent automatic extractions will have a jitter of **1-20 minutes** added to the base interval.
 
 ### request.json
 Define your reports in JSON format:
@@ -107,7 +110,7 @@ Define your reports in JSON format:
 3. **Automated Mode**:
    - Configure interval settings
    - Enable auto mode
-   - Application will run in system tray
+   - The application will add a random delay (jitter) to the configured interval for each run and can be minimized to the system tray to run in the background.
 
 ## 🔑 Key Components
 
@@ -146,7 +149,7 @@ pyinstaller --name LinkDownloader --windowed main.py
 
 ## 📄 License
 
-This project is proprietary and confidential. All rights reserved.
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## 🔮 Future Enhancements
 
