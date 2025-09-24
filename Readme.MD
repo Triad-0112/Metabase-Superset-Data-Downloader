@@ -15,6 +15,7 @@ A Python desktop application for automated downloading of reports from Metabase/
 - **Progress Tracking**: Visual feedback for download progress
 - **Detailed Logging**: Comprehensive activity logging
 - **Locking into one Instance**: Make sure that was only one instance that is allowed to run
+- **Server Load Option**: Add Server Load time for each even hours
 
 ## 🔧 Requirements
 
