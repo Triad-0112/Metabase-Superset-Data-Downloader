@@ -1,4 +1,3 @@
-# gui/view.py
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
@@ -20,11 +19,12 @@ class MainWindow(QMainWindow):
         self.btn_edit_config = QPushButton("Edit Config")
         self.btn_concurrency_settings = QPushButton("⚙️ Concurrent Settings")
         self.btn_interval_settings = QPushButton("⏰ Interval Settings")
+        self.btn_server_settings = QPushButton("⚙️ Waktu Proses Server")
         self.progress_bar = QProgressBar()
         self.log_box = QTextEdit()
         self.log_box.setReadOnly(True)
         
-        # Status labels untuk auto interval
+        # Status labels for auto interval
         self.status_label = QLabel("Status: Manual Mode")
         self.status_label.setStyleSheet("font-weight: bold; color: #333;")
         self.next_run_label = QLabel("")
@@ -57,6 +57,7 @@ class MainWindow(QMainWindow):
         hlayout2.addWidget(self.btn_set_output)
         hlayout2.addWidget(self.btn_concurrency_settings)
         hlayout2.addWidget(self.btn_interval_settings)
+        hlayout2.addWidget(self.btn_server_settings)
         layout.addLayout(hlayout2)
         
         # Extract buttons layout
@@ -75,7 +76,11 @@ class MainWindow(QMainWindow):
 
     def update_status(self, status_text, next_run_text=""):
         """Update status labels"""
-        self.status_label.setText(f"Status: {status_text}")
+        if not status_text.strip().startswith("Status:"):
+            self.status_label.setText(f"Status: {status_text}")
+        else:
+            self.status_label.setText(status_text)
+            
         self.next_run_label.setText(next_run_text)
 
     def set_auto_mode(self, enabled):

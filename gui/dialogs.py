@@ -1,4 +1,3 @@
-# gui/dialogs.py
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QLineEdit, QTextEdit, QLabel, QPushButton, QMessageBox, QHBoxLayout,
     QComboBox, QCheckBox, QSpinBox
@@ -300,3 +299,59 @@ class IntervalSettingsDialog(QDialog):
             self.accept()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Gagal simpan config: {e}")
+
+class ServerSettingsDialog(QDialog):
+    """A new dialog to configure server settings."""
+    def __init__(self, config_path, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Pengaturan Waktu Proses Server")
+        self.setMinimumSize(350, 200)
+        self.config_path = config_path
+        self.config = configparser.ConfigParser(interpolation=None)
+
+        self.layout = QVBoxLayout()
+
+        # Server busy duration setting
+        self.label_busy_minutes = QLabel("Durasi Proses Server (menit):\n(Waktu di awal setiap jam saat ekstraksi akan ditunda)")
+        self.input_busy_minutes = QSpinBox()
+        self.input_busy_minutes.setMinimum(0)
+        self.input_busy_minutes.setMaximum(59)
+        self.input_busy_minutes.setValue(35)  # Default
+
+        # Save button
+        self.btn_save = QPushButton("Simpan")
+        self.btn_save.clicked.connect(self.save_config)
+
+        # Layout setup
+        self.layout.addWidget(self.label_busy_minutes)
+        self.layout.addWidget(self.input_busy_minutes)
+        self.layout.addWidget(self.btn_save)
+
+        self.setLayout(self.layout)
+
+        self.load_config()
+
+    def load_config(self):
+        """Load the busy_minutes value from the [SERVER] section in config.ini."""
+        self.config.read(self.config_path)
+        if "SERVER" in self.config:
+            busy_minutes = self.config["SERVER"].getint("busy_minutes", 35)
+            self.input_busy_minutes.setValue(busy_minutes)
+        else:
+            self.input_busy_minutes.setValue(35)
+
+    def save_config(self):
+        """Save the busy_minutes value to the [SERVER] section in config.ini."""
+        if "SERVER" not in self.config:
+            self.config["SERVER"] = {}
+            
+        self.config["SERVER"]["busy_minutes"] = str(self.input_busy_minutes.value())
+
+        try:
+            with open(self.config_path, "w") as f:
+                self.config.write(f)
+            QMessageBox.information(self, "Sukses", "Pengaturan server berhasil disimpan!")
+            self.accept()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Gagal menyimpan config: {e}")
+
